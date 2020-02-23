@@ -25,6 +25,8 @@ $ python3.5 -m pytest -s
 - [AWS DeepRacer— Everything that you need to know regarding training](https://medium.com/@aman.arora0210/aws-deepracer-everything-that-you-need-to-know-regarding-training-c9cc570ed4c2)
 ### Reinforcement Learning
 
+- [Youtube: Writing Great Reward Functions](https://www.youtube.com/watch?v=0R3PnJEisqk)
+
 #### PPO Algorithm
 - [OpenAI Introducing PPO to the World](https://openai.com/blog/openai-baselines-ppo/)
 - [RL — Proximal Policy Optimization (PPO) Explained](https://medium.com/@jonathan_hui/rl-proximal-policy-optimization-ppo-explained-77f014ec3f12)

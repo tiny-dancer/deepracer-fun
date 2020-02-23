@@ -4,6 +4,7 @@ def reward_function(params):
     Emphasizing speed and optimal based on evaluating all upcoming waypoints 
     '''
 
+    import math
     import copy
     import json
     import os
@@ -13,21 +14,14 @@ def reward_function(params):
     local_testing = "LOCAL_TESTING" in os.environ
 
     # Initialize the reward with typical value 
-    reward = 1.0
 
-    if progress == 100:    
-        reward *= 10000
-    elif progress >= 90:
-        reward *= progress
-    elif progress >= 80:
-        reward *= progress * .1
-    elif progress < 80:
-        reward *= progress * .01
+    reward = (progress/100)**.4
 
     x = {} 
     if not local_testing:
         x = copy.deepcopy(params)
-    
+
+    x["progress"] = progress 
     x["reward"] = reward
         
     print(json.dumps(x))

@@ -8,6 +8,7 @@ def reward_function(params):
     import copy
     import json
     import os
+    import time
 
     # Read input variables
     waypoints = params['waypoints']
@@ -26,21 +27,36 @@ def reward_function(params):
     print("waypoint_count: {}".format(waypoint_count))
     print("remaining_waypoint_count: {}".format(remaining_waypoint_count))
 
-    track_direction = 0.0
-    direction_diff = 10000.0
-    waypoint_selected = -1
+    optimal_track_direction = 0.0
+    distance = 0
+    optimal_direction_diff = 10000.0
+    optimal_waypoint_selected = -1
+    optimal_waypoint_distance = -1
+    DIRECTION_THRESHOLD = 10.0
 
+    # Calculate the direction of the center line based on the closest waypoints
+    next_point = waypoints[closest_waypoints[1]]
     prev_point = waypoints[closest_waypoints[0]]
+
+    # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
+    track_direction = math.atan2(next_point[1] - prev_point[1], next_point[0] - prev_point[0]) 
+    # Convert to degree
+    track_direction = math.degrees(track_direction)
+
+    # Calculate the difference between the track direction and the heading direction of the car
+    direction_diff = abs(track_direction - heading)
+    if direction_diff > 180:
+        direction_diff = 360 - direction_diff
 
     for x in range(closest_waypoints[0], waypoint_count):
 
         if x == waypoint_count:
             break
 
-        next_point = waypoints[x]
+        loop_next_point = waypoints[x]
 
         # Calculate the direction in radius, arctan2(dy, dx), the result is (-pi, pi) in radians
-        loop_track_direction = math.atan2(next_point[1] - prev_point[1], next_point[0] - prev_point[0]) 
+        loop_track_direction = math.atan2(loop_next_point[1] - prev_point[1], loop_next_point[0] - prev_point[0]) 
         # Convert to degree
         loop_track_direction = math.degrees(loop_track_direction)
 
@@ -54,15 +70,16 @@ def reward_function(params):
         if local_testing:
             print("[waypoint_{}] distance: {} track_direction: {} direction_diff: {}".format(x, loop_distance, loop_track_direction, loop_direction_diff))
 
-        if loop_direction_diff < direction_diff:
-            direction_diff = loop_direction_diff
-            track_direction = track_direction 
-            waypoint_selected = x
+        if loop_direction_diff < DIRECTION_THRESHOLD:
+            if loop_distance > distance:
+                optimal_direction_diff = loop_direction_diff
+                optimal_track_direction = track_direction 
+                optimal_waypoint_selected = x
+                optimal_waypoint_distance = loop_distance
 
-    # Penalize the reward if the difference is too large
-    DIRECTION_THRESHOLD = 10.0
-    if direction_diff > DIRECTION_THRESHOLD:
-        reward *= 0.5
+    # Penalize the reward if the difference is below optimal
+    if direction_diff > optimal_direction_diff:
+        reward = 0
 
     # Penalize car for going slower 
     max_speed = 8.0
@@ -84,9 +101,14 @@ def reward_function(params):
 
 
     x["direction_diff"] = direction_diff
+    x["optimal_direction_diff"] = optimal_direction_diff
+    x["optimal_track_direction"] = optimal_track_direction
+    x["optimal_waypoint_distance"] = optimal_waypoint_distance
+    x["optimal_waypoint_selected"] = optimal_waypoint_selected
     x["track_direction"] = track_direction
     x["reward"] = reward
-    x["waypoint_selected"] = waypoint_selected
+    x["model"] = "mg-optimal-waypoint1"
+    x["unixTimestamp"] = time.time()
         
     print(json.dumps(x))
 
